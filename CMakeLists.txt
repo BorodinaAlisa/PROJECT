@@ -1,34 +1,45 @@
 cmake_minimum_required(VERSION 3.10)
-project(project)
+project(GameOfLife)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Путь к SFML
-# set(SFML_DIR "C:/project/SFML-2.5.1-MSVC")
-set(SFML_DIR "C:/project/SFML-2.6.0-dll")
+# SFML
+find_package(SFML 2 COMPONENTS graphics window system REQUIRED)
 
-# Подключаем заголовочные файлы
-include_directories("${SFML_DIR}/include")
-
-# Линкуем SFML
-link_directories("${SFML_DIR}/lib")
-
-add_executable(project src/main.cpp)
-
-target_link_libraries(project
-    "${SFML_DIR}/lib/sfml-graphics.lib"
-    "${SFML_DIR}/lib/sfml-window.lib"
-    "${SFML_DIR}/lib/sfml-system.lib"
+# Основное приложение
+add_executable(GameOfLife
+    src/main.cpp
+    src/GameOfLifeCore.cpp
+    src/GameOfLifeRenderer.cpp
 )
 
-# Копируем DLL после сборки
-if(WIN32 AND NOT SFML_STATIC_LIBRARIES)
-    add_custom_command(TARGET project POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${SFML_DIR}/bin/sfml-graphics-2.dll"
-            "${SFML_DIR}/bin/sfml-window-2.dll"
-            "${SFML_DIR}/bin/sfml-system-2.dll"
-            $<TARGET_FILE_DIR:project>
+target_include_directories(GameOfLife PRIVATE include)
+target_link_libraries(GameOfLife PRIVATE sfml-graphics sfml-window sfml-system)
+
+# Тестирование
+option(BUILD_TESTS "Build unit tests" ON)
+
+if(BUILD_TESTS)
+    enable_testing()
+    
+    # Более современный способ подключения GTest
+    find_package(GTest REQUIRED)
+    
+    add_executable(runUnitTests
+        tests/GameOfLifeCoreTest.cpp
+        src/GameOfLifeCore.cpp
     )
+
+    target_include_directories(runUnitTests PRIVATE include)
+    
+    # Современный способ линковки GTest
+    target_link_libraries(runUnitTests PRIVATE 
+        GTest::GTest 
+        GTest::Main 
+        pthread 
+        sfml-graphics sfml-window sfml-system
+    )
+    
+    add_test(NAME GameOfLifeCoreTest COMMAND runUnitTests)
 endif()

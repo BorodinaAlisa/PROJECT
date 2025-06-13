@@ -1,3 +1,0 @@
-Failed to load font "" (failed to create the font face)
-Failed to load font "" (failed to create the font face)
-Failed to load font "" (failed to create the font face)
